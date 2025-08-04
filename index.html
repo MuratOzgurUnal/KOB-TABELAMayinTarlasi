@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KOBİTABELA Mayın Tarlası</title>
+    <style>
+        body {
+            font-family: 'MS Sans Serif', sans-serif;
+            background-color: #c0c0c0;
+            margin: 0;
+            padding: 20px;
+            user-select: none;
+        }
+
+        .game-container {
+            background-color: #c0c0c0;
+            border: 3px outset #c0c0c0;
+            padding: 10px;
+            max-width: 100%;
+            overflow-x: auto;
+        }
+
+        .header {
+            background-color: #000080;
+            color: white;
+            text-align: center;
+            padding: 8px;
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 10px;
+            border: 2px inset #c0c0c0;
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .minefield {
+            border: 3px inset #c0c0c0;
+            background-color: #c0c0c0;
+            display: inline-block;
+        }
+
+        .row {
+            display: flex;
+            height: 24px;
+        }
+
+        .header-row {
+            background-color: #000080;
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .header-cell {
+            width: 80px;
+            min-width: 80px;
+            padding: 0;
+            text-align: center;
+            border-right: 1px solid #ffffff;
+            border-left: 1px solid #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            box-sizing: border-box;
+        }
+
+        .name-cell {
+            width: 150px;
+            min-width: 150px;
+            background-color: #e0e0e0;
+            border: 1px solid #808080;
+            padding: 4px;
+            font-size: 10px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            box-sizing: border-box;
+        }
+
+        .club-cell {
+            width: 150px;
+            min-width: 150px;
+            background-color: #e0e0e0;
+            border: 1px solid #808080;
+            padding: 4px;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            box-sizing: border-box;
+        }
+
+        .cell {
+            width: 80px;
+            height: 24px;
+            border: 2px outset #c0c0c0;
+            background-color: #c0c0c0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        .cell:hover:not(.revealed):not(.exploded) {
+            background-color: #d0d0d0;
+        }
+
+        .cell.revealed {
+            border: 1px inset #c0c0c0;
+            background-color: #e0e0e0;
+            cursor: default;
+        }
+
+        .cell.safe {
+            background-color: #90ee90;
+            color: #008000;
+        }
+
+        .cell.exploded {
+            background-color: #ff0000;
+            color: white;
+            border: 2px inset #c0c0c0;
+        }
+
+        .bomb {
+            font-size: 14px;
+            color: #000000;
+        }
+
+        .points-cell {
+            width: 80px;
+            min-width: 80px;
+            background-color: #add8e6;
+            border: 1px solid #808080;
+            padding: 0;
+            font-size: 12px;
+            font-weight: bold;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+        }
+
+        .game-over {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #c0c0c0;
+            border: 3px outset #c0c0c0;
+            padding: 20px;
+            text-align: center;
+            z-index: 1000;
+            box-shadow: 4px 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .button {
+            background-color: #c0c0c0;
+            border: 2px outset #c0c0c0;
+            padding: 5px 15px;
+            margin: 5px;
+            cursor: pointer;
+            font-family: 'MS Sans Serif', sans-serif;
+        }
+
+        .button:active {
+            border: 2px inset #c0c0c0;
+        }
+
+        .status {
+            margin: 10px 0;
+            font-weight: bold;
+        }
+
+        /* Ekran görüntüsü butonu */
+        .screenshot-btn {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background-color: #c0c0c0;
+            border: 1px outset #c0c0c0;
+            padding: 3px 6px;
+            cursor: pointer;
+            font-family: 'MS Sans Serif', sans-serif;
+            font-size: 9px;
+            opacity: 0.7;
+            z-index: 999;
+        }
+
+        .screenshot-btn:hover {
+            opacity: 1;
+        }
+
+        /* Yaratıcı imzası */
+        .creator-credit {
+            position: fixed;
+            bottom: 2px;
+            left: 10px;
+            font-size: 8px;
+            color: #888;
+            opacity: 0.6;
+            font-family: 'MS Sans Serif', sans-serif;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">KOBİTABELA MAYIN TARLASI</div>
+        
+        <div class="game-info">
+            <div>Tutmayan Kalemler: <span id="bombCount">0</span></div>
+            <div>Tutan Kalemler: <span id="safeCount">0</span></div>
+            <div>Durum: <span id="gameStatus">Oyun Devam Ediyor</span></div>
+        </div>
+
+        <div class="minefield">
+            <!-- Header row -->
+            <div class="row header-row">
+                <div class="header-cell" style="width: 150px; border-left: none;">Portföy Ünvan</div>
+                <div class="header-cell" style="width: 150px;">Şube Adı</div>
+                <div class="header-cell">Çek Karnesi</div>
+                <div class="header-cell">Ticari Kart</div>
+                <div class="header-cell">DBS</div>
+                <div class="header-cell">ÜİY</div>
+                <div class="header-cell">Dış Ticaret</div>
+                <div class="header-cell">Tahsil Çek</div>
+                <div class="header-cell">Paket</div>
+                <div class="header-cell" style="border-right: none;">PUAN</div>
+            </div>
+            
+            <div id="gameGrid"></div>
+        </div>
+    </div>
+
+    <!-- Tüm kutuları aç butonu -->
+    <button class="screenshot-btn" onclick="revealAll()">👁️</button>
+
+    <!-- Yaratıcı imzası -->
+    <div class="creator-credit">Created by Murat Özgür Ünal</div>
+
+    <script>
+        const gameData = [
+            ["Ayfer Kula Atamer", "Akdeniz Sanayi", "✓", "✓", "✓", "💣", "💣", "💣", "✓", "4"],
+            ["İlayda Bostaner", "Alanya Keykubat", "✓", "✓", "💣", "💣", "💣", "✓", "✓", "4"],
+            ["Aybars Oduncuoğlu", "Hal", "✓", "✓", "💣", "✓", "✓", "💣", "💣", "3"],
+            ["Kağan Giderler", "Kemer", "✓", "💣", "💣", "✓", "💣", "✓", "💣", "3"],
+            ["Hülya Görkem Korucu", "Perge", "✓", "💣", "✓", "💣", "💣", "💣", "✓", "3"],
+            ["Tuba Uysal", "Mahmutlar", "✓", "✓", "💣", "💣", "💣", "💣", "✓", "3"],
+            ["Gül Taşlı", "Manavgat Side", "✓", "💣", "💣", "✓", "💣", "💣", "✓", "3"],
+            ["Kürşat Filiz", "Serik", "✓", "💣", "✓", "💣", "💣", "💣", "✓", "3"],
+            ["Özgür Uslu", "Özgürlük", "✓", "✓", "💣", "💣", "💣", "💣", "✓", "3"],
+            ["Ünzüle Özge Vural", "Alanya Oba", "✓", "💣", "💣", "💣", "💣", "✓", "✓", "3"],
+            ["Osman Sertaç Bilge", "Antalya Sanayiçarşısı", "✓", "💣", "💣", "✓", "✓", "💣", "💣", "3"],
+            ["Yavuz Serkan Babür", "Manavgat", "✓", "💣", "💣", "💣", "💣", "✓", "✓", "3"],
+            ["Nagihan Berber", "Alanya Keykubat", "✓", "💣", "💣", "💣", "💣", "💣", "✓", "2"],
+            ["Vedat Aydın", "Akdeniz Sanayi", "✓", "✓", "💣", "💣", "💣", "💣", "💣", "2"],
+            ["Tayfun Tüfekçi", "Kepez", "✓", "💣", "💣", "💣", "💣", "💣", "✓", "2"],
+            ["Füsun Şen Sinanoğlu", "Gazipasa", "✓", "✓", "💣", "💣", "💣", "💣", "💣", "2"],
+            ["Mutlu Baytekin", "Elmalı", "✓", "💣", "💣", "💣", "💣", "💣", "✓", "2"],
+            ["Buket Çopuroğlu", "Akdeniz Sanayi", "✓", "💣", "💣", "💣", "💣", "💣", "✓", "2"],
+            ["Mert Elma", "Manavgat Side", "💣", "💣", "💣", "✓", "💣", "💣", "✓", "2"],
+            ["Ebru Arslan", "Perge", "✓", "✓", "💣", "💣", "💣", "💣", "💣", "2"],
+            ["Gülseri Kıvrak", "Altınkum", "✓", "💣", "💣", "💣", "💣", "💣", "✓", "2"],
+            ["Banu Polat", "Lara", "✓", "✓", "💣", "💣", "💣", "💣", "💣", "2"],
+            ["Volkan Kılınç", "Belek", "✓", "💣", "💣", "💣", "💣", "✓", "💣", "2"],
+            ["Cihan Taran", "Finike", "✓", "💣", "💣", "💣", "💣", "💣", "✓", "2"],
+            ["Nihal Seçkin", "Döşemealtı", "✓", "✓", "💣", "💣", "💣", "💣", "💣", "2"],
+            ["Fatma Beygu", "Aliçeltikaya", "✓", "✓", "💣", "💣", "💣", "💣", "💣", "2"],
+            ["Sevilay Eş", "Alanya", "✓", "💣", "💣", "💣", "💣", "💣", "✓", "2"],
+            ["Naci Günay", "Kemer", "✓", "💣", "💣", "💣", "💣", "💣", "💣", "1"],
+            ["Mehmet Fatih Gürel", "Varsak", "✓", "💣", "💣", "💣", "💣", "💣", "💣", "1"],
+            ["Murat Tokaç", "Alanya", "✓", "💣", "💣", "💣", "💣", "💣", "💣", "1"],
+            ["Sıla Burcu Karamahmutoğlu", "Teomanpaşa", "✓", "💣", "💣", "💣", "💣", "💣", "💣", "1"],
+            ["Ebru Erdoğan", "Manavgat Sanayi", "✓", "💣", "💣", "💣", "💣", "💣", "💣", "1"],
+            ["Nilay Balkanlı", "Işıklar Caddesi", "✓", "💣", "💣", "💣", "💣", "💣", "💣", "1"],
+            ["İlker Yiğit", "Özgürlük", "✓", "💣", "💣", "💣", "💣", "💣", "💣", "1"],
+            ["Özlem Mercan", "Kepez", "✓", "💣", "💣", "💣", "💣", "💣", "💣", "1"],
+            ["Gamze Cengiz", "Konyaaltı", "💣", "💣", "💣", "💣", "✓", "💣", "💣", "1"],
+            ["Elif Tezcan", "Avsallar", "✓", "💣", "💣", "💣", "💣", "💣", "💣", "1"],
+            ["Bahar Tatar", "Dokuma", "✓", "💣", "💣", "💣", "💣", "💣", "💣", "1"],
+            ["Seda Arslan Günay", "Muratpaşa", "✓", "💣", "💣", "💣", "💣", "💣", "💣", "1"],
+            ["Zeynep Ataş", "Belek", "💣", "💣", "💣", "💣", "✓", "💣", "💣", "1"],
+            ["Süleyman Koç", "Kalkan", "✓", "💣", "💣", "💣", "💣", "💣", "💣", "1"],
+            ["Koray Uysal", "Altınkum", "✓", "💣", "💣", "💣", "💣", "💣", "💣", "1"],
+            ["Ayşıl Yiğit", "Fener", "✓", "💣", "💣", "💣", "💣", "💣", "💣", "1"],
+            ["Hüseyin Çölçegen", "Aksu", "✓", "💣", "💣", "💣", "💣", "💣", "💣", "1"],
+            ["Umut Şerbetcioğlu", "Serik", "✓", "💣", "💣", "💣", "💣", "💣", "💣", "1"],
+            ["Mehmet Aslan", "Kaş", "✓", "💣", "💣", "💣", "💣", "💣", "💣", "1"],
+            ["Sedef Kaplan", "Manavgat", "✓", "💣", "💣", "💣", "💣", "💣", "💣", "1"],
+            ["Seniye Tatlı", "Teomanpaşa", "✓", "💣", "💣", "💣", "💣", "💣", "💣", "1"],
+            ["Emel Güneş Aydemir", "Antalya", "✓", "💣", "💣", "💣", "💣", "💣", "💣", "1"],
+            ["Arif Özdemir", "Antalya Liman", "💣", "💣", "💣", "💣", "💣", "💣", "✓", "1"],
+            ["Fatma Bengü Yörükoğlu", "Antalya", "✓", "💣", "💣", "💣", "💣", "💣", "💣", "1"],
+            ["Sezen Derin Aksu", "Altınova", "✓", "💣", "💣", "💣", "💣", "💣", "💣", "1"],
+            ["Serdal Ünal", "Antalya Sanayiçarşısı", "✓", "💣", "💣", "💣", "💣", "💣", "💣", "1"],
+            ["Feray Esen Kayhan", "Korkuteli", "✓", "💣", "💣", "💣", "💣", "💣", "💣", "1"],
+            ["Gökhan Karahan", "Kumluca", "✓", "💣", "💣", "💣", "💣", "💣", "💣", "1"],
+            ["Murat Koyuncu", "Dokuma", "✓", "💣", "💣", "💣", "💣", "💣", "💣", "1"],
+            ["Görkem Yaverler", "Demre", "✓", "💣", "💣", "💣", "💣", "💣", "💣", "1"],
+            ["Suat Karamahmutoğlu", "Kundu", "✓", "💣", "💣", "💣", "💣", "💣", "💣", "1"],
+            ["Gökhan Tülüce", "Manavgat", "💣", "💣", "💣", "💣", "💣", "💣", "💣", "0"],
+            ["Yasemin Akdağ", "Kumluca", "💣", "💣", "💣", "💣", "💣", "💣", "💣", "0"]
+        ];
+
+        let gameState = [];
+        let gameOver = false;
+        let totalBombs = 0;
+        let totalSafe = 0;
+        let revealedSafe = 0;
+
+        function initGame() {
+            const gameGrid = document.getElementById('gameGrid');
+            gameGrid.innerHTML = '';
+            gameState = [];
+            gameOver = false;
+            totalBombs = 0;
+            totalSafe = 0;
+            revealedSafe = 0;
+
+            gameData.forEach((rowData, rowIndex) => {
+                const row = document.createElement('div');
+                row.className = 'row';
+                
+                // Name cell
+                const nameCell = document.createElement('div');
+                nameCell.className = 'name-cell';
+                nameCell.textContent = rowData[0];
+                row.appendChild(nameCell);
+
+                // Club cell
+                const clubCell = document.createElement('div');
+                clubCell.className = 'club-cell';
+                clubCell.textContent = rowData[1];
+                row.appendChild(clubCell);
+
+                const rowState = [];
+                
+                // Game cells (columns 2-8)
+                for (let colIndex = 2; colIndex <= 8; colIndex++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.dataset.row = rowIndex;
+                    cell.dataset.col = colIndex;
+                    
+                    const value = rowData[colIndex];
+                    const isSafe = value === "✓";
+                    
+                    if (isSafe) {
+                        totalSafe++;
+                    } else {
+                        totalBombs++;
+                    }
+                    
+                    cell.addEventListener('click', () => revealCell(rowIndex, colIndex));
+                    
+                    rowState.push({
+                        value: value,
+                        revealed: false,
+                        isSafe: isSafe
+                    });
+                    
+                    row.appendChild(cell);
+                }
+
+                // Points cell
+                const pointsCell = document.createElement('div');
+                pointsCell.className = 'points-cell';
+                pointsCell.textContent = rowData[9];
+                row.appendChild(pointsCell);
+
+                gameState.push(rowState);
+                gameGrid.appendChild(row);
+            });
+
+            updateDisplay();
+        }
+
+        function revealCell(row, col) {
+            if (gameOver || gameState[row][col - 2].revealed) return;
+
+            const cellState = gameState[row][col - 2];
+            const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+            
+            cellState.revealed = true;
+            cell.classList.add('revealed');
+
+            if (cellState.isSafe) {
+                cell.classList.add('safe');
+                cell.textContent = '✓';
+                revealedSafe++;
+                
+                if (revealedSafe === totalSafe) {
+                    gameWon();
+                }
+            } else {
+                cell.classList.add('exploded');
+                cell.innerHTML = '💣';
+                gameOver = true;
+                setTimeout(gameLost, 100);
+            }
+
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            document.getElementById('bombCount').textContent = totalBombs;
+            document.getElementById('safeCount').textContent = `${revealedSafe}/${totalSafe}`;
+            
+            if (gameOver) {
+                document.getElementById('gameStatus').textContent = 'Oyun Bitti - Bomba Patladı!';
+            } else if (revealedSafe === totalSafe) {
+                document.getElementById('gameStatus').textContent = 'Tebrikler - Kazandınız!';
+            } else {
+                document.getElementById('gameStatus').textContent = 'Oyun Devam Ediyor';
+            }
+        }
+
+        function gameLost() {
+            // Reveal all bombs
+            gameState.forEach((row, rowIndex) => {
+                row.forEach((cellState, colIndex) => {
+                    if (!cellState.isSafe && !cellState.revealed) {
+                        const cell = document.querySelector(`[data-row="${rowIndex}"][data-col="${colIndex + 2}"]`);
+                        cell.classList.add('revealed', 'exploded');
+                        cell.innerHTML = '💣';
+                    }
+                });
+            });
+
+            showGameOverDialog('Oyun Bitti!', 'Bomba patladı! Tekrar oynamak ister misiniz?');
+        }
+
+        function gameWon() {
+            gameOver = true;
+            showGameOverDialog('Tebrikler!', 'Tüm güvenli yerleri buldunuz! Tekrar oynamak ister misiniz?');
+        }
+
+        function showGameOverDialog(title, message) {
+            const dialog = document.createElement('div');
+            dialog.className = 'game-over';
+            dialog.innerHTML = `
+                <h2>${title}</h2>
+                <p>${message}</p>
+                <button class="button" onclick="restartGame()">Yeni Oyun</button>
+                <button class="button" onclick="closeDialog()">Kapat</button>
+            `;
+            document.body.appendChild(dialog);
+        }
+
+        function restartGame() {
+            closeDialog();
+            initGame();
+        }
+
+        function closeDialog() {
+            const dialog = document.querySelector('.game-over');
+            if (dialog) {
+                dialog.remove();
+            }
+        }
+
+        // Tüm kutuları açma fonksiyonu
+        function revealAll() {
+            // Tüm hücreleri aç ve açık bırak
+            gameState.forEach((row, rowIndex) => {
+                row.forEach((cellState, colIndex) => {
+                    const cell = document.querySelector(`[data-row="${rowIndex}"][data-col="${colIndex + 2}"]`);
+                    if (cell && !cellState.revealed) {
+                        cellState.revealed = true;
+                        cell.classList.add('revealed');
+                        if (cellState.isSafe) {
+                            cell.classList.add('safe');
+                            cell.textContent = '✓';
+                        } else {
+                            cell.classList.add('exploded');
+                            cell.innerHTML = '💣';
+                        }
+                    }
+                });
+            });
+            
+            // Oyun durumunu güncelle
+            gameOver = true;
+            revealedSafe = totalSafe;
+            updateDisplay();
+        }
+
+        // Initialize game on page load
+        initGame();
+
+        // html2canvas kütüphanesini yükle
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+        document.head.appendChild(script);
+    </script>
+</body>
+</html>
